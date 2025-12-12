@@ -251,7 +251,7 @@ function addClothingItem(clothingItem) {
 }
 function setClothingItem(index, clothingItem) {
     closetArray[index] = clothingItem;
-}
+} 
 function clearClothingItem(index) {
     closetArray[index] = null;
 }
