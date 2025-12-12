@@ -237,6 +237,12 @@ class ClothingItem {
 }
 // -------------------------- CONSTANTS --------------------------
 
+const SIZE = document.getElementById("size");
+const COLOUR = document.getElementById("colour");
+const NAME = document.getElementById("name");
+const IMAGE_LINK = document.getElementById("image-link");
+const CLOTHING_TYPE = document.getElementById("clothing-type");
+const PRICE = document.getElementById("price");
 
 // -------------------------- VARIABLES --------------------------
 
@@ -244,6 +250,15 @@ let closetIndex = 0;
 let closetArray = new Array(15);
 
 // -------------------------- FUNCTIONS --------------------------
+
+// function which is called when the add clothing item button is pressed
+function createClothingItem() {
+    SIZE.value = "";
+    COLOUR.value = "";
+    NAME.value = "";
+    IMAGE_LINK.value = "";
+
+}
 
 function addClothingItem(clothingItem) {
     closetIndex++;
