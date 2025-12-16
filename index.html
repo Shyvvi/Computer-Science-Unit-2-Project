@@ -1,5 +1,6 @@
 <html>
     <body>
+        <div id="clothing-container"></div>
         <div id="new-clothing">
             <input type="text" placeholder="Size" id="size">
             <input type="text" placeholder="Colour" id="colour">
@@ -7,11 +8,23 @@
             <input type="text" placeholder="Image Link" id="image-link">
             <input type="text" placeholder="Price" id="price">
             
-            <select id="clothing-type">
+            <select id="size" title="Size">
+                <option value="unset">Unset</option>
+                <option value="extra-small">Extra Small</option>
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
-                <option value="na">NUT</option>
+                <option value="extra-large">Extra Large</option>
+            </select>
+
+            <select id="type" title="Type">
+                <option value="unset">Unset</option>
+                <option value="pants">Pants</option>
+                <option value="shirt">Shirt</option>
+                <option value="t-shirt">T-Shirt</option>
+                <option value="sweater">NA</option>
+                <option value="hat">NA</option>
+                <option value="accessory">NA</option>
             </select>
         </div>
     </body>

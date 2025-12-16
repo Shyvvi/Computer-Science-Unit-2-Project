@@ -217,6 +217,13 @@ class TickingElement {
     }
 }
 
+// function for getting a unique ID for an object
+let IDTracker = 0;
+function getNewID() {
+    IDTracker++;
+    return IDTracker;
+}
+
 // -------------------------- NEW CLASSES --------------------------
 class ClothingItem {
     size = "";
@@ -225,6 +232,7 @@ class ClothingItem {
     imageSource = "";
     name = "";
     price = 0;
+    imageHTMLElement = null;
     
     constructor(size, color, type, imageSource, name, price) {
         this.size = size;
@@ -233,6 +241,34 @@ class ClothingItem {
         this.imageSource = imageSource;
         this.name = name;
         this.price = Number(price);
+        this.initialize();
+    }
+
+    initialize() {
+        let sizeIndex = 0;
+        switch(SIZE.value) {
+            case "unset":
+                sizeIndex = 0
+                break;
+            case "extra-small":
+                sizeIndex = 1
+                break;
+            case "small":
+                sizeIndex = 2
+                break;
+            case "medium":
+                sizeIndex = 3
+                break;
+            case "large":
+                sizeIndex = 4
+                break;
+            case "extra-large":
+                sizeIndex = 5
+                break;
+        }
+        this.imageHTMLElement = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
+
+        this.imageHTMLElement.setSpriteSize(sizeArray(sizeIndex));
     }
 }
 // -------------------------- CONSTANTS --------------------------
@@ -241,22 +277,29 @@ const SIZE = document.getElementById("size");
 const COLOUR = document.getElementById("colour");
 const NAME = document.getElementById("name");
 const IMAGE_LINK = document.getElementById("image-link");
-const CLOTHING_TYPE = document.getElementById("clothing-type");
+const TYPE = document.getElementById("type");
 const PRICE = document.getElementById("price");
+const CLOTHING_CONTAINER = "clothing-container";
 
 // -------------------------- VARIABLES --------------------------
 
 let closetIndex = 0;
 let closetArray = new Array(15);
+let locationsArray = [
+    Vec2d()
+]
 
 // -------------------------- FUNCTIONS --------------------------
 
 // function which is called when the add clothing item button is pressed
 function createClothingItem() {
+    addClothingItem(new ClothingItem(SIZE.value, COLOUR.value, TYPE.value, IMAGE_LINK.value, NAME.value, PRICE.value));
     SIZE.value = "";
     COLOUR.value = "";
     NAME.value = "";
     IMAGE_LINK.value = "";
+    TYPE.value = "";
+
 
 }
 
