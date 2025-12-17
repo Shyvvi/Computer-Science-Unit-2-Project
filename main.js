@@ -183,11 +183,34 @@ class ImageHTMLElement {
     }
 }
 
+// the framework required for ticking elements
+// configurable, the speed at which the game ticks
+const TICKING_SPEED = 10;
+// the setInterval for the ticking elements (so the tickingElements actually tick)
+let primaryTicker = setInterval(tickElements, TICKING_SPEED);
+let tickingObjects = [];
+function tickElements() {
+    for(let i = 0; i > tickingObjects.length; i++) {
+        // have a try and catch as if one ticking element throws an exception, it will halt all further ticking
+        // this effectively freezes all ticking for the game meaning it wont work
+        try {
+            if(!objectArray[i].exemptedTicking) {
+                objectArray[i].tick();
+            }
+        } catch (error) {
+            // throw a tickFailError which it will be exempted from ticking furthermore if it continues to error
+            objectArray[i].tickFailError(objectArray[i], error);
+        }
+    }
+}
 /** TickingElement is a parent class for objects which are to be ticked non-persistently
  *  this means that these objects will not tick when the game is paused
  *  TickingElement acts as a tag of sorts where if a class extends this one, it will automatically have the tick() function called
  */
 class TickingElement {
+    constructor() {
+        tickingObjects.push(this);
+    }
     // !! all of the code below is essentially a failsafe to make sure the program keeps running even when there are errors !!
 
     // constant for the maximum amount of failed ticks a TickingElement can have
@@ -216,25 +239,25 @@ class TickingElement {
         console.error(object + " surpassed the tick fail threshold and will be exempted from ticking!");
     }
 }
-
-// function for getting a unique ID for an object
 let IDTracker = 0;
+// function for getting a unique ID for an object
 function getNewID() {
     IDTracker++;
     return IDTracker;
 }
 
 // -------------------------- NEW CLASSES --------------------------
-class ClothingItem {
+class ClothingItem extends TickingElement {
     size = "";
     color = "";
     type = "";
     imageSource = "";
     name = "";
     price = 0;
-    imageHTMLElement = null;
+    IMG = null;
     
     constructor(size, color, type, imageSource, name, price) {
+        super();
         this.size = size;
         this.color = color;
         this.type = type;
@@ -266,9 +289,38 @@ class ClothingItem {
                 sizeIndex = 5
                 break;
         }
-        this.imageHTMLElement = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
+        this.IMG = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
 
-        this.imageHTMLElement.setSpriteSize(sizeArray(sizeIndex));
+        this.IMG.setSpriteSize(sizeArray(sizeIndex));
+    }
+
+    tick() {
+        this.moveClothing();
+    }
+
+    moveClothing() {
+        // get the location of this sprite
+        let clothingLocation = this.IMG.getSpriteLocation();
+        // get the difference of the target location and the ingredient's current location
+        let locationDifference = new Vec2d(100*this.getIndexDifference(), 200).subtract(clothingLocation);
+        // divide the difference of locations and turn it into a small enough value so it can be used to move the image around smoothly
+        locationDifference.divide(CLOTHES_MOVEMENT_SPEED);
+
+        // rotate the sprite dynamically so it looks nice
+        this.IMG.rotateSprite(locationDifference.getX());
+
+        // actually move the sprite after all of these translations
+        this.IMG.moveSprite(clothingLocation.add(locationDifference));
+    }
+
+    getIndexDifference() {
+        // this for loop iterates through the closet array, looking for the index in which this clothing item is in
+        for(let i = 0; i < closetArray; i++) {
+            if(closetArray[i] == this) {
+                // if a matching object is found within the closetArray, return the INDEX of the object
+                return i - closetIndex;
+            }
+        }
     }
 }
 // -------------------------- CONSTANTS --------------------------
@@ -280,6 +332,7 @@ const IMAGE_LINK = document.getElementById("image-link");
 const TYPE = document.getElementById("type");
 const PRICE = document.getElementById("price");
 const CLOTHING_CONTAINER = "clothing-container";
+const CLOTHES_MOVEMENT_SPEED = 10;
 
 // -------------------------- VARIABLES --------------------------
 
@@ -299,8 +352,7 @@ function createClothingItem() {
     NAME.value = "";
     IMAGE_LINK.value = "";
     TYPE.value = "";
-
-
+    PRICE.value = "";
 }
 
 function addClothingItem(clothingItem) {
