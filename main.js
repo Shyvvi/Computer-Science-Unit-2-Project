@@ -1,45 +1,71 @@
 /// -------------------------- PRIOR MADE FRAMEWORKS (derived from Unit 1 Project) --------------------------
 // Utility class used for storing and handling two dimensional vectors (x and y)
 class Vec2d {
-    // x and y values
     x = 0;
     y = 0;
-    // super constructor for taking in values upon object creation
+    /**
+     * Creates a two dimensional vector for storing locations and/or values
+     * @param {Number} x 
+     * @param {Number} y 
+     */
     constructor(x, y) {
         this.x = x;
         this.y = y;
     }
 
-    // function which returns whether this vector and the vector provided within the arguement have the same values
+    /**
+     * Whether this vector and the vector provided within the arguement have the same values
+     * @param {Vec2d} vec2d 
+     * @returns Boolean
+     */
     equals(vec2d) {
         return vec2d.getX() == this.getX() && vec2d.getY() == this.getY(); 
     }
 
-    // function which returns and adds this vector to the vector provided within the arguements
+    /**
+     * Adds this vector to the vector provided within the arguements
+     * @param {Vec2d} vec2d 
+     * @returns The sum of the two vectors
+     */
     add(vec2d) {
         return new Vec2d(this.x + vec2d.getX(), this.y + vec2d.getY())
     }
 
-    // function which returns and subtracts this vector to the vector provided within the arguements
+    /**
+     * Subtracts this vector to the vector provided within the arguements
+     * @param {Vec2d} vec2d 
+     * @returns The difference of the two vectors
+     */
     subtract(vec2d) {
         return new Vec2d(this.x - vec2d.getX(), this.y - vec2d.getY())
     }
 
-    // function which multiplies this vector to the vector provided within the arguements
+    /**
+     * Multiplies this vector to the vector provided within the arguements
+     * @param {Number} value 
+     * @returns the product of the multiplied vector
+     */
     multiply(value) {
         this.x = this.x * value;
         this.y = this.y * value;
         return this;
     }
 
-    // function which divides this vector to the vector provided within the arguements
+    /**
+     * Divides this vector to the vector provided within the arguements
+     * @param {Number} value 
+     * @returns the quotient of divided vector
+     */
     divide(value) {
         this.x = this.x / value;
         this.y = this.y / value;
         return this;
     }
 
-    // functions which return the x and y values of this 2d vector
+    /**
+     * Returns the x value of this vector
+     * @returns
+     */
     getX() {
         return this.x;
     }
@@ -47,15 +73,24 @@ class Vec2d {
         return this.y;
     }
 
-    // functions which set the x and y values of this 2d vector
+    /**
+     * Sets the X value of the vector
+     * @param {Number} value 
+     */
     setX(value) {
         this.x = value;
     }
+    /**
+     * Sets the Y value of the vector
+     * @param {Number} value 
+     */
     setY(value) {
         this.y = value;
     }
 
-    // debugging function for logging the values of this vector inside of console
+    /**
+     * Logs the value
+     */
     logValues() {
         console.log(this + " = " + this.x + " " + this.y);
     }
@@ -68,16 +103,23 @@ class ImageHTMLElement {
     // the location of where the image is created initially
     spawnLocation;
     // the HTML div where this image will be stored and moved
-    containerDiv = "";
+    containerDiv = "";dicc
     // IDRoot is the text before the actual ID (eg: root-69)
     IDRoot = "";
     ID = getNewID();
-    // super constructor for setting variables upon object creation
+    /**
+     * 
+     * @param {String} imageSource 
+     * @param {Vec2d} spawnLocation 
+     * @param {String} containerDiv 
+     * @param {String} IDRoot 
+     */
     constructor(imageSource, spawnLocation, containerDiv, IDRoot) {
         this.imageSource = imageSource;
         this.spawnLocation = spawnLocation;
         this.containerDiv = containerDiv;
         this.IDRoot = IDRoot;
+        this.initialize();
     }
 
     // initialization function which is called by the createObject() function
@@ -100,7 +142,10 @@ class ImageHTMLElement {
         this.moveSprite(this.spawnLocation);
     }
 
-    // function for toggling whether this image is to be displayed or not
+    /**
+     * Toggles whether this image is to be displayed or not
+     * @param {boolean} value 
+     */
     setDisplayed(value) {
         // set the CSS display to visible or not based on the boolean provided within the arguements
         if(value) {
@@ -187,19 +232,19 @@ class ImageHTMLElement {
 // configurable, the speed at which the game ticks
 const TICKING_SPEED = 10;
 // the setInterval for the ticking elements (so the tickingElements actually tick)
-let primaryTicker = setInterval(tickElements, TICKING_SPEED);
 let tickingObjects = [];
+let primaryTicker = setInterval(tickElements, TICKING_SPEED);
 function tickElements() {
-    for(let i = 0; i > tickingObjects.length; i++) {
+    for(let i = 0; i < tickingObjects.length; i++) {
         // have a try and catch as if one ticking element throws an exception, it will halt all further ticking
         // this effectively freezes all ticking for the game meaning it wont work
         try {
-            if(!objectArray[i].exemptedTicking) {
-                objectArray[i].tick();
+            if(!tickingObjects[i].exemptedTicking) {
+                tickingObjects[i].tick();
             }
         } catch (error) {
             // throw a tickFailError which it will be exempted from ticking furthermore if it continues to error
-            objectArray[i].tickFailError(objectArray[i], error);
+            tickingObjects[i].tickFailError(tickingObjects[i], error);
         }
     }
 }
@@ -208,8 +253,10 @@ function tickElements() {
  *  TickingElement acts as a tag of sorts where if a class extends this one, it will automatically have the tick() function called
  */
 class TickingElement {
-    constructor() {
-        tickingObjects.push(this);
+    constructor() {}
+
+    initTickingElement(childClass) {
+        tickingObjects.push(childClass);
     }
     // !! all of the code below is essentially a failsafe to make sure the program keeps running even when there are errors !!
 
@@ -265,9 +312,12 @@ class ClothingItem extends TickingElement {
         this.name = name;
         this.price = Number(price);
         this.initialize();
+        this.initTickingElement(this);
+        console.log(tickingObjects)
     }
 
     initialize() {
+        console.log("Successfully created a new clothing item instance")
         let sizeIndex = 0;
         switch(SIZE.value) {
             case "unset":
@@ -291,7 +341,7 @@ class ClothingItem extends TickingElement {
         }
         this.IMG = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
 
-        this.IMG.setSpriteSize(sizeArray(sizeIndex));
+        this.IMG.setSpriteSize(SIZE_ARRAY[sizeIndex]);
     }
 
     tick() {
@@ -302,7 +352,8 @@ class ClothingItem extends TickingElement {
         // get the location of this sprite
         let clothingLocation = this.IMG.getSpriteLocation();
         // get the difference of the target location and the ingredient's current location
-        let locationDifference = new Vec2d(100*this.getIndexDifference(), 200).subtract(clothingLocation);
+        console.log(this.getIndexDifference());
+        let locationDifference = new Vec2d(window.outerWidth/2 + 300*this.getIndexDifference(), window.outerHeight/2).subtract(clothingLocation);
         // divide the difference of locations and turn it into a small enough value so it can be used to move the image around smoothly
         locationDifference.divide(CLOTHES_MOVEMENT_SPEED);
 
@@ -315,7 +366,7 @@ class ClothingItem extends TickingElement {
 
     getIndexDifference() {
         // this for loop iterates through the closet array, looking for the index in which this clothing item is in
-        for(let i = 0; i < closetArray; i++) {
+        for(let i = 0; i < closetArray.length; i++) {
             if(closetArray[i] == this) {
                 // if a matching object is found within the closetArray, return the INDEX of the object
                 return i - closetIndex;
@@ -332,17 +383,44 @@ const IMAGE_LINK = document.getElementById("image-link");
 const TYPE = document.getElementById("type");
 const PRICE = document.getElementById("price");
 const CLOTHING_CONTAINER = "clothing-container";
-const CLOTHES_MOVEMENT_SPEED = 10;
+const CLOTHES_MOVEMENT_SPEED = 20;
 
 // -------------------------- VARIABLES --------------------------
-
+const SIZE_ARRAY = [
+    new Vec2d(100, 100),
+    new Vec2d(150, 150),
+    new Vec2d(200, 200),
+    new Vec2d(250, 250),
+    new Vec2d(300, 300),
+    new Vec2d(350, 350),
+    new Vec2d(400, 400)
+];
 let closetIndex = 0;
 let closetArray = new Array(15);
-let locationsArray = [
-    Vec2d()
-]
+closetArray[0] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
+closetArray[1] = new ClothingItem("extra-large", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
+closetArray[2] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
+closetArray[5] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
 
 // -------------------------- FUNCTIONS --------------------------
+
+function moveArray(amount) {
+    // move the array index
+    closetIndex += amount;
+    console.log(closetIndex +"   "+ closetArray.length);
+
+    // these if statements make sure the current location is within the array
+    // if a position outside of the array is tried to be accessed, it will most likely throw errors
+    if(closetIndex < 0) {
+        // set the position of the array to the top so it loops
+        closetIndex = 0;
+    } // check if the position of the array is outside of array's bounds again
+    else if(closetIndex > closetArray.length-1) {
+        // set the position of the array to the bottom so it loops
+        closetIndex = closetArray.length-1;
+    }
+    console.log(closetIndex +"   "+ closetArray.length);
+}
 
 // function which is called when the add clothing item button is pressed
 function createClothingItem() {
