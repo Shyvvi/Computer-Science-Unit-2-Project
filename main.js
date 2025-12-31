@@ -302,7 +302,15 @@ class ClothingItem extends TickingElement {
     name = "";
     price = 0;
     IMG = null;
-    
+    /**
+     * 
+     * @param {String} size 
+     * @param {String} color 
+     * @param {String} type 
+     * @param {String} imageSource 
+     * @param {String} name 
+     * @param {Number} price 
+     */
     constructor(size, color, type, imageSource, name, price) {
         super();
         this.size = size;
@@ -313,34 +321,34 @@ class ClothingItem extends TickingElement {
         this.price = Number(price);
         this.initialize();
         this.initTickingElement(this);
-        console.log(tickingObjects)
     }
 
     initialize() {
         console.log("Successfully created a new clothing item instance")
         let sizeIndex = 0;
-        switch(SIZE.value) {
+        switch(this.size) {
             case "unset":
-                sizeIndex = 0
+                sizeIndex = 0;
                 break;
             case "extra-small":
-                sizeIndex = 1
+                sizeIndex = 1;
                 break;
             case "small":
-                sizeIndex = 2
+                sizeIndex = 2;
                 break;
             case "medium":
-                sizeIndex = 3
+                sizeIndex = 3;
                 break;
             case "large":
-                sizeIndex = 4
+                sizeIndex = 4;
                 break;
             case "extra-large":
-                sizeIndex = 5
+                sizeIndex = 5;
                 break;
         }
         this.IMG = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
 
+        console.log(sizeIndex);
         this.IMG.setSpriteSize(SIZE_ARRAY[sizeIndex]);
     }
 
@@ -352,7 +360,6 @@ class ClothingItem extends TickingElement {
         // get the location of this sprite
         let clothingLocation = this.IMG.getSpriteLocation();
         // get the difference of the target location and the ingredient's current location
-        console.log(this.getIndexDifference());
         let locationDifference = new Vec2d(window.outerWidth/2 + 300*this.getIndexDifference(), window.outerHeight/2).subtract(clothingLocation);
         // divide the difference of locations and turn it into a small enough value so it can be used to move the image around smoothly
         locationDifference.divide(CLOTHES_MOVEMENT_SPEED);
@@ -399,7 +406,7 @@ let closetIndex = 0;
 let closetArray = new Array(15);
 closetArray[0] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
 closetArray[1] = new ClothingItem("extra-large", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
-closetArray[2] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
+closetArray[2] = new ClothingItem("large", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
 closetArray[5] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
 
 // -------------------------- FUNCTIONS --------------------------
@@ -407,7 +414,6 @@ closetArray[5] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Blac
 function moveArray(amount) {
     // move the array index
     closetIndex += amount;
-    console.log(closetIndex +"   "+ closetArray.length);
 
     // these if statements make sure the current location is within the array
     // if a position outside of the array is tried to be accessed, it will most likely throw errors
@@ -419,12 +425,13 @@ function moveArray(amount) {
         // set the position of the array to the bottom so it loops
         closetIndex = closetArray.length-1;
     }
-    console.log(closetIndex +"   "+ closetArray.length);
 }
 
 // function which is called when the add clothing item button is pressed
 function createClothingItem() {
-    addClothingItem(new ClothingItem(SIZE.value, COLOUR.value, TYPE.value, IMAGE_LINK.value, NAME.value, PRICE.value));
+    if(SIZE.value !== "unset" && COLOUR.value !== "" && NAME.value !== "" && IMAGE_LINK.value !== "" && TYPE.value !== "unset") {
+        addClothingItem(new ClothingItem(SIZE.value, COLOUR.value, TYPE.value, IMAGE_LINK.value, NAME.value, PRICE.value));
+    }
     SIZE.value = "";
     COLOUR.value = "";
     NAME.value = "";
@@ -434,8 +441,11 @@ function createClothingItem() {
 }
 
 function addClothingItem(clothingItem) {
-    closetIndex++;
-    closetArray[closetIndex] = clothingItem;
+    for(let i = 0; i < closetArray.length; i++) {
+        if(closetArray[i] == null) {
+            closetArray[i] = clothingItem;
+        }
+    }
 }
 function setClothingItem(index, clothingItem) {
     closetArray[index] = clothingItem;
