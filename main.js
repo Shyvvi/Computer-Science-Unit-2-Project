@@ -247,6 +247,7 @@ function tickElements() {
             tickingObjects[i].tickFailError(tickingObjects[i], error);
         }
     }
+    tick();
 }
 /** TickingElement is a parent class for objects which are to be ticked non-persistently
  *  this means that these objects will not tick when the game is paused
@@ -392,6 +393,8 @@ const PRICE = document.getElementById("price");
 const CLOTHING_CONTAINER = "clothing-container";
 const CLOTHES_MOVEMENT_SPEED = 20;
 
+const CLOTHING_INFO_DISPLAY = document.getElementById("clothing-info");
+
 // -------------------------- VARIABLES --------------------------
 const SIZE_ARRAY = [
     new Vec2d(100, 100),
@@ -410,6 +413,18 @@ closetArray[2] = new ClothingItem("large", "blue", "top", "black_t_shirt", "Blac
 closetArray[5] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
 
 // -------------------------- FUNCTIONS --------------------------
+
+function tick() {
+    showClothingInfo(closetArray[closetIndex]);
+}
+
+function saveData(wardrobeName) {
+    localStorage.setItem("localWardrobe");
+}
+
+function loadLocalStorage(wardrobeName) {
+
+}
 
 function moveArray(amount) {
     // move the array index
@@ -452,6 +467,23 @@ function setClothingItem(index, clothingItem) {
 } 
 function clearClothingItem(index) {
     closetArray[index] = null;
+}
+
+/**
+ * displays the info of the clothing item provided within the function's arguements
+ * @param {ClothingItem} clothingItem 
+ */
+function showClothingInfo(clothingItem) {
+    if(clothingItem != null) {
+        CLOTHING_INFO_DISPLAY.innerText =
+        "Name: "+clothingItem.name+"\n" 
+        + "Size: "+clothingItem.size+"\n"
+        + "Type: "+clothingItem.type+"\n" 
+        + "Color: "+clothingItem.color+"\n"
+        + "Price: "+clothingItem.price+"\n";
+    } else {
+        CLOTHING_INFO_DISPLAY.innerText = "Empty"
+    }
 }
 
 // return a random integer for some more variety in gameplay

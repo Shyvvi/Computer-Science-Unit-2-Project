@@ -4,7 +4,10 @@
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
+        <!-- Used by my object based image core where the image objects are stored -->
         <div id="clothing-container"></div>
+
+        <!-- div which contains all of the UI which is used for adding new things to the wardrobe -->
         <div id="new-clothing">
             <input type="text" placeholder="Colour" id="colour">
             <input type="text" placeholder="Name" id="name">
@@ -32,9 +35,13 @@
 
             <button onclick="createClothingItem()">Add Clothing Item</button>
         </div>
+
+        <!-- buttons for traversing through the array -->
         <div id="general-ui">
+            <br>
             <button onclick="moveArray(-1)">Previous Item</button>
             <button onclick="moveArray(1)">Next Item</button>
+            <p id="clothing-info"></p>
         </div>
     </body>
     <script src="main.js"></script>

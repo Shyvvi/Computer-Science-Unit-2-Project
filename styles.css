@@ -5,3 +5,9 @@ html, body {
     overflow: hidden;
     overflow-x: hidden;
 }
+
+#clothing-info {
+    top: 50vh;
+    right: 50vw;
+    right: 50vw;
+}
