@@ -7,7 +7,9 @@ html, body {
 }
 
 #clothing-info {
-    top: 50vh;
-    right: 50vw;
-    right: 50vw;
+    top: 75vh;
+    left: 50vw;
+    position: absolute;
+    width: 100%;
+    transform: translateX(-50%);
 }

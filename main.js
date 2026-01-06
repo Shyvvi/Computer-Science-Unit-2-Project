@@ -163,7 +163,7 @@ class ImageHTMLElement {
     // function for setting the actual image to be displayed
     // image sources must be a .png and must be within the local assets folder
     setSprite(source) {
-        this.getSprite().src = "assets/"+source+".png";
+        this.getSprite().src = source;
     }
     // function for getting the HTML element which this object is linked to
     getSprite() {
@@ -225,6 +225,11 @@ class ImageHTMLElement {
     // function for setting the opacity of the sprite
     setSpriteOpacity(opacity) {
         this.getSprite().style.opacity = opacity / 100+"";
+    }
+
+    // function for getting the opacity of the sprite
+    getSpriteOpacity() {
+        return this.getSprite().style.opacity * 100;
     }
 }
 
@@ -296,6 +301,7 @@ function getNewID() {
 
 // -------------------------- NEW CLASSES --------------------------
 class ClothingItem extends TickingElement {
+    isHidden = false;
     size = "";
     color = "";
     type = "";
@@ -361,12 +367,21 @@ class ClothingItem extends TickingElement {
         // get the location of this sprite
         let clothingLocation = this.IMG.getSpriteLocation();
         // get the difference of the target location and the ingredient's current location
-        let locationDifference = new Vec2d(window.outerWidth/2 + 300*this.getIndexDifference(), window.outerHeight/2).subtract(clothingLocation);
+        let locationDifference = new Vec2d(window.outerWidth/2 + 300*this.getIndexDifference() + clothingOffset.getX(), window.outerHeight/2 - clothingOffset.getY()).subtract(clothingLocation);
+        if(this.isHidden) {
+            locationDifference.setY(-1000);
+        }
         // divide the difference of locations and turn it into a small enough value so it can be used to move the image around smoothly
         locationDifference.divide(CLOTHES_MOVEMENT_SPEED);
 
         // rotate the sprite dynamically so it looks nice
         this.IMG.rotateSprite(locationDifference.getX());
+
+
+        let opacityGoal = 100 - (Math.abs(this.getIndexDifference())*opacityScale);
+        let currentOpacity = this.IMG.getSpriteOpacity();
+        let opacityDifference = (opacityGoal - currentOpacity)/OPACITY_CHANGE_SPEED;
+        this.IMG.setSpriteOpacity(currentOpacity + opacityDifference);
 
         // actually move the sprite after all of these translations
         this.IMG.moveSprite(clothingLocation.add(locationDifference));
@@ -381,6 +396,13 @@ class ClothingItem extends TickingElement {
             }
         }
     }
+    
+    remove() {
+        // remove the HTML image element
+        this.IMG.getSprite().remove();
+        // remove this object from it's array
+        closetArray[closetIndex] = null;
+    }
 }
 // -------------------------- CONSTANTS --------------------------
 
@@ -390,8 +412,13 @@ const NAME = document.getElementById("name");
 const IMAGE_LINK = document.getElementById("image-link");
 const TYPE = document.getElementById("type");
 const PRICE = document.getElementById("price");
+const CLOSET_INFO = document.getElementById("closet-info");
+const SORT_TYPE = document.getElementById("sort-type");
+const SORT_SIZE = document.getElementById("sort-size");
+const SEARCH = document.getElementById("search");
 const CLOTHING_CONTAINER = "clothing-container";
 const CLOTHES_MOVEMENT_SPEED = 20;
+const OPACITY_CHANGE_SPEED = 10;
 
 const CLOTHING_INFO_DISPLAY = document.getElementById("clothing-info");
 
@@ -405,17 +432,27 @@ const SIZE_ARRAY = [
     new Vec2d(350, 350),
     new Vec2d(400, 400)
 ];
+let closetInfoViewing = false;
 let closetIndex = 0;
 let closetArray = new Array(15);
-closetArray[0] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
-closetArray[1] = new ClothingItem("extra-large", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
-closetArray[2] = new ClothingItem("large", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
-closetArray[5] = new ClothingItem("small", "blue", "top", "black_t_shirt", "Black T-Shirt", 10);
+let clothingOffset = new Vec2d(0, 20);
+let opacityScale = 25;
+closetArray[0] = new ClothingItem("small", "blue", "t-shirt", "assets/black_t_shirt.png", "Black T-Shirt", 10);
+closetArray[1] = new ClothingItem("extra-large", "blue", "t-shirt", "assets/black_t_shirt.png", "Black T-Shirt", 10);
+closetArray[2] = new ClothingItem("large", "black", "t-shirt", "assets/black_t_shirt.png", "Black T-Shirt", 10);
+closetArray[5] = new ClothingItem("small", "white", "t-shirt", "assets/white_t_shirt.png", "White T-Shirt", 10);
 
 // -------------------------- FUNCTIONS --------------------------
 
 function tick() {
     showClothingInfo(closetArray[closetIndex]);
+    tickFilters();
+
+    if(closetInfoViewing) {
+        displayClosetText();
+    } else {
+        CLOSET_INFO.innerText = "";
+    }
 }
 
 function saveData(wardrobeName) {
@@ -446,12 +483,14 @@ function moveArray(amount) {
 function createClothingItem() {
     if(SIZE.value !== "unset" && COLOUR.value !== "" && NAME.value !== "" && IMAGE_LINK.value !== "" && TYPE.value !== "unset") {
         addClothingItem(new ClothingItem(SIZE.value, COLOUR.value, TYPE.value, IMAGE_LINK.value, NAME.value, PRICE.value));
+    } else {
+        alert("Please fill in the fields before creating a new item.");
     }
-    SIZE.value = "";
+    SIZE.value = "unset";
     COLOUR.value = "";
     NAME.value = "";
     IMAGE_LINK.value = "";
-    TYPE.value = "";
+    TYPE.value = "unset";
     PRICE.value = "";
 }
 
@@ -459,14 +498,36 @@ function addClothingItem(clothingItem) {
     for(let i = 0; i < closetArray.length; i++) {
         if(closetArray[i] == null) {
             closetArray[i] = clothingItem;
+            break;
         }
     }
-}
-function setClothingItem(index, clothingItem) {
-    closetArray[index] = clothingItem;
 } 
-function clearClothingItem(index) {
-    closetArray[index] = null;
+function removeClothingItem() {
+    if(closetArray[closetIndex] != null) {
+        closetArray[closetIndex].remove();
+    } else {
+        alert("This item is already empty!");
+    }
+}
+
+function tickFilters() {
+    sortProperties(SORT_TYPE.value, SORT_SIZE.value);
+}
+
+function sortProperties(type, size) {
+    for(let i = 0; i < closetArray.length; i++) {
+        if(closetArray[i] != null) {
+            if(type != "unset" || size != "unset") {
+                if(closetArray[i].type == type || closetArray[i].size == size) {
+                    closetArray[i].isHidden = false;
+                } else {
+                    closetArray[i].isHidden = true;
+                }
+            } else {
+                closetArray[i].isHidden = false;
+            }
+        }
+    }
 }
 
 /**
@@ -474,6 +535,7 @@ function clearClothingItem(index) {
  * @param {ClothingItem} clothingItem 
  */
 function showClothingInfo(clothingItem) {
+    CLOTHING_INFO_DISPLAY.style.left = (window.outerWidth - 75) + clothingOffset.getX();
     if(clothingItem != null) {
         CLOTHING_INFO_DISPLAY.innerText =
         "Name: "+clothingItem.name+"\n" 
@@ -484,6 +546,41 @@ function showClothingInfo(clothingItem) {
     } else {
         CLOTHING_INFO_DISPLAY.innerText = "Empty"
     }
+}
+
+function displayCloset() {
+    if(closetInfoViewing) {
+        closetInfoViewing = false;
+        opacityScale = 25;
+        clothingOffset.setX(0);
+    } else {
+        closetInfoViewing = true;
+        opacityScale = 33;
+        clothingOffset.setX(window.outerWidth/3);
+    }
+}
+
+function displayClosetText() {
+    closetInfoDisplay = "";
+    for(let i = 0; i<closetArray.length; i++) {
+        let clothingItem = closetArray[i];
+        if(clothingItem != null) {
+            if(closetArray[i].getIndexDifference() == 0) {
+                closetInfoDisplay+="|["+clothingItem.name+"]|";
+            } else {
+                closetInfoDisplay+="<"+clothingItem.name+">";
+            }
+            closetInfoDisplay+=" Size: "+clothingItem.size+" Type: "+clothingItem.type+" Color: "+clothingItem.color+" Price: $"+clothingItem.price;
+        } else {
+            if(i == closetIndex) {
+                closetInfoDisplay+="|[Empty]|";
+            } else {
+                closetInfoDisplay+="<Empty>";
+            }
+        }
+        closetInfoDisplay+="\n";
+    }
+    CLOSET_INFO.innerText = closetInfoDisplay;
 }
 
 // return a random integer for some more variety in gameplay
