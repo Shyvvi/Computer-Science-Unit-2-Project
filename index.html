@@ -9,6 +9,7 @@
 
         <!-- div which contains all of the UI which is used for adding new things to the wardrobe -->
         <div id="new-clothing">
+            <p>New Clothing:</p>
             <input type="text" placeholder="Colour" id="colour">
             <input type="text" placeholder="Name" id="name">
             <input type="text" placeholder="Image Link" id="image-link">
@@ -37,13 +38,8 @@
             <button onclick="removeClothingItem()">Remove Clothing Item</button>
         </div>
 
-        <!-- buttons for traversing through the array -->
-        <div id="general-ui">
-            <br>
-            <button onclick="moveArray(-1)">Previous Item</button>
-            <button onclick="moveArray(1)">Next Item</button>
-            <button onclick="displayCloset()">Display Closet</button>
-            <br>
+        <!-- buttons for sorting through the closet -->
+        <div id="sorting-ui">
             <p>Filters:</p>
             <label for="Size">Type</label>:</label>
             <select id="sort-type" title="Type">
@@ -64,7 +60,33 @@
                 <option value="large">Large</option>
                 <option value="extra-large">Extra Large</option>
             </select>
-            <input type="text" placeholder="Keyword Search">
+            <input id="search" type="text" placeholder="Keyword Search">
+
+            <label for="Price Range">Price Range:</label>
+            <input id="price-sort-min" type="text" name="Price Range" placeholder="Min $">
+            <input id="price-sort-max" type="text" placeholder="Max $">
+            <br>
+        </div>
+
+        <div id="saving-ui">
+            <p>Closet Management:</p>
+            <label for="Closet ID">Closet ID:</label>
+            <input id="closet-id" type="text" name="Closet ID" placeholder="ID">
+            <button onclick="saveCloset()">Save Closet</button>
+            <button onclick="loadCloset()">Load Closet</button>
+            <button onclick="deleteCloset()">Remove Closet</button>
+            <button onclick="listClosets()">List Closets</button>
+        </div>
+        
+        <div id="general-ui">
+            <br>
+            <button onclick="moveArray(-1)">Previous Item</button>
+            <button onclick="moveArray(1)">Next Item</button>
+            <button onclick="displayCloset()">Display Closet</button>
+            <br>
+        </div>
+
+        <div id="misc-ui">
             <p id="closet-info"></p>
             <br>
             <p id="clothing-info"></p>

@@ -243,6 +243,9 @@ function tickElements() {
     for(let i = 0; i < tickingObjects.length; i++) {
         // have a try and catch as if one ticking element throws an exception, it will halt all further ticking
         // this effectively freezes all ticking for the game meaning it wont work
+        if(tickingObjects[i] == null) {
+            tickingObjects.pop(tickingObjects[i]);
+        }
         try {
             if(!tickingObjects[i].exemptedTicking) {
                 tickingObjects[i].tick();
@@ -290,6 +293,12 @@ class TickingElement {
         // make sure to actually exempt this object from ticking
         this.exemptedTicking = true;
         console.error(object + " surpassed the tick fail threshold and will be exempted from ticking!");
+    }
+
+    // function which is to be called to stop ticking for an element
+    stopTicking(object) {
+        // exempt the object from ticking
+        this.exemptedTicking = true;
     }
 }
 let IDTracker = 0;
@@ -354,7 +363,6 @@ class ClothingItem extends TickingElement {
                 break;
         }
         this.IMG = new ImageHTMLElement(this.imageSource, new Vec2d(0, 0), CLOTHING_CONTAINER, "clothing");
-
         console.log(sizeIndex);
         this.IMG.setSpriteSize(SIZE_ARRAY[sizeIndex]);
     }
@@ -397,11 +405,19 @@ class ClothingItem extends TickingElement {
         }
     }
     
-    remove() {
+    /**
+     * function which is called to remove an instance of the ClothingItem object
+     * @param {boolean} clearArray whether the object will be removed and will remove the current object index of the array
+     */
+    remove(clearArray) {
         // remove the HTML image element
         this.IMG.getSprite().remove();
-        // remove this object from it's array
-        closetArray[closetIndex] = null;
+        // stop the ticking to prevent unnecessary exceptions
+        this.stopTicking();
+        if(clearArray) {
+            // remove this object from the current array
+            closetArray[closetIndex] = null;
+        }
     }
 }
 // -------------------------- CONSTANTS --------------------------
@@ -416,6 +432,9 @@ const CLOSET_INFO = document.getElementById("closet-info");
 const SORT_TYPE = document.getElementById("sort-type");
 const SORT_SIZE = document.getElementById("sort-size");
 const SEARCH = document.getElementById("search");
+const PRICE_SORT_MIN = document.getElementById("price-sort-min");
+const PRICE_SORT_MAX = document.getElementById("price-sort-max");
+const CLOSET_ID = document.getElementById("closet-id");
 const CLOTHING_CONTAINER = "clothing-container";
 const CLOTHES_MOVEMENT_SPEED = 20;
 const OPACITY_CHANGE_SPEED = 10;
@@ -455,12 +474,75 @@ function tick() {
     }
 }
 
-function saveData(wardrobeName) {
-    localStorage.setItem("localWardrobe");
+
+function saveCloset() {
+    if(getClosetID() != null) {
+        let duplicateID = false;
+        for(let i = 0; i < localStorage.length; i++) {
+            if(localStorage.key(i) == getClosetID()) {
+                duplicateID = true;
+                break;
+            }
+        }
+        if(duplicateID) {
+            alert("There is already a closet with ID "+getClosetID()+".");
+        } else {
+            localStorage.setItem(getClosetID(), JSON.stringify(closetArray));
+            alert("Saved closet with ID "+getClosetID()+".");
+        }
+    }
 }
 
-function loadLocalStorage(wardrobeName) {
+function loadCloset() {
+    clearCloset();
+    if(getClosetID() != null) {      
+        let storedArray = JSON.parse(localStorage.getItem(getClosetID()));
+        if(storedArray == null) {
+            alert("Local closet with ID "+getClosetID()+" not found.");
+        } else {
+            clearCloset();
+            for(let i = 0; i < storedArray.length; i++) {
+                let storedObject = storedArray[i];
+                if(storedObject != null) {
+                    setClothingItem(new ClothingItem(storedObject.size, storedObject.color, storedObject.type, storedObject.imageSource, storedObject.name, storedObject.price), i);
+                }
+            }
+            alert("Loaded closet with ID "+getClosetID()+".");
+        }
+    }
+}
 
+function deleteCloset() {
+    if(getClosetID() != null) {
+        localStorage.removeItem(getClosetID());
+        alert("Removed closet with ID "+getClosetID()+".");
+    }
+}
+
+function listClosets() {
+    let alertString = "Closet IDs:\n";
+    for(let i = 0; i < localStorage.length; i++) {
+        alertString += "- Closet: "+localStorage.key(i)+"\n";
+    }
+    alert(alertString);
+}
+
+function getClosetID() {
+    if(CLOSET_ID.value.length < 5) {
+        alert("Closet ID must have a length more than 5.");
+        return null;
+    } else {
+        return CLOSET_ID.value;
+    }
+}
+
+function clearCloset() {
+    for(let i = 0; i < closetArray.length; i++) {
+        if(closetArray[i] != null) {
+            closetArray[i].remove(false);
+            closetArray[i] = null;
+        }
+    }
 }
 
 function moveArray(amount) {
@@ -481,53 +563,81 @@ function moveArray(amount) {
 
 // function which is called when the add clothing item button is pressed
 function createClothingItem() {
-    if(SIZE.value !== "unset" && COLOUR.value !== "" && NAME.value !== "" && IMAGE_LINK.value !== "" && TYPE.value !== "unset") {
+    if(SIZE.value !== "unset" && COLOUR.value !== "" && NAME.value !== "" && IMAGE_LINK.value !== "" && TYPE.value !== "unset" && !isNaN(PRICE.value)) {
         addClothingItem(new ClothingItem(SIZE.value, COLOUR.value, TYPE.value, IMAGE_LINK.value, NAME.value, PRICE.value));
+        SIZE.value = "unset";
+        COLOUR.value = "";
+        NAME.value = "";
+        IMAGE_LINK.value = "";
+        TYPE.value = "unset";
+        PRICE.value = "";
     } else {
         alert("Please fill in the fields before creating a new item.");
     }
-    SIZE.value = "unset";
-    COLOUR.value = "";
-    NAME.value = "";
-    IMAGE_LINK.value = "";
-    TYPE.value = "unset";
-    PRICE.value = "";
+}
+
+function setClothingItem(clothingItem, index) {
+    closetArray[index] = clothingItem;
 }
 
 function addClothingItem(clothingItem) {
+    let itemHasBeenSet = false;
     for(let i = 0; i < closetArray.length; i++) {
         if(closetArray[i] == null) {
-            closetArray[i] = clothingItem;
+            setClothingItem(clothingItem, i);
+            itemHasBeenSet = true;
             break;
         }
+    }
+    if(!itemHasBeenSet) {
+        alert("The closet is full.");
+        alert("Please clear some space before adding new clothing to the closet");
+        clothingItem.remove(false);
     }
 } 
 function removeClothingItem() {
     if(closetArray[closetIndex] != null) {
-        closetArray[closetIndex].remove();
+        closetArray[closetIndex].remove(true);
     } else {
         alert("This item is already empty!");
     }
 }
 
 function tickFilters() {
-    sortProperties(SORT_TYPE.value, SORT_SIZE.value);
+    let priceSortRange = new Vec2d(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+    if(!isNaN(Number(PRICE_SORT_MIN.value)) && PRICE_SORT_MIN.value != "") {
+        priceSortRange.setX(Number(PRICE_SORT_MIN.value));
+    }
+    if(!isNaN(Number(PRICE_SORT_MAX.value)) && PRICE_SORT_MAX.value != "") {
+        priceSortRange.setY(Number(PRICE_SORT_MAX.value));
+    }
+    sortProperties(SORT_TYPE.value, SORT_SIZE.value, priceSortRange, SEARCH.value);
 }
 
-function sortProperties(type, size) {
+function sortProperties(type, size, priceRange, keywordString) {
     for(let i = 0; i < closetArray.length; i++) {
-        if(closetArray[i] != null) {
-            if(type != "unset" || size != "unset") {
-                if(closetArray[i].type == type || closetArray[i].size == size) {
-                    closetArray[i].isHidden = false;
+        let clothingItem = closetArray[i];
+        if(clothingItem != null) {
+            if(type != "unset" || size != "unset" || keywordString != "" || !unchangedPriceRange(priceRange)) {
+                if(clothingItem.type == type || clothingItem.size == size || (clothingItem.price <= priceRange.getY() && clothingItem.price >= priceRange.getX()) || (foundSimilarString(clothingItem, keywordString) && keywordString != "")) {
+                    clothingItem.isHidden = false;
                 } else {
-                    closetArray[i].isHidden = true;
+                    clothingItem.isHidden = true;
                 }
             } else {
                 closetArray[i].isHidden = false;
             }
         }
     }
+}
+
+function unchangedPriceRange(vec2d) {
+    return vec2d.x == Number.MIN_SAFE_INTEGER && vec2d.y == Number.MAX_SAFE_INTEGER;
+}
+
+function foundSimilarString(clothingItem, string) {
+    let lowercasedString = string.toLowerCase();
+    if(clothingItem.color.toLowerCase().includes(lowercasedString) || clothingItem.name.toLowerCase().includes(lowercasedString) || clothingItem.type.toLowerCase().includes(lowercasedString) || clothingItem.size.toLowerCase().includes(lowercasedString)) return true;
 }
 
 /**
@@ -565,7 +675,7 @@ function displayClosetText() {
     for(let i = 0; i<closetArray.length; i++) {
         let clothingItem = closetArray[i];
         if(clothingItem != null) {
-            if(closetArray[i].getIndexDifference() == 0) {
+            if(clothingItem.getIndexDifference() == 0) {
                 closetInfoDisplay+="|["+clothingItem.name+"]|";
             } else {
                 closetInfoDisplay+="<"+clothingItem.name+">";
